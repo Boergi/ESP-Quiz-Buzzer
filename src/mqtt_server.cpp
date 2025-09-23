@@ -1,0 +1,224 @@
+#include "mqtt_server.h"
+#include "led_controller.h"
+#include <ArduinoJson.h>
+
+// Global variables
+QuizMQTTBroker mqttBroker;
+ClientInfo gameClients[MAX_CLIENTS];
+uint8_t gameClientCount = 0;
+String buzzQueue[MAX_CLIENTS];
+uint8_t queueLength = 0;
+int8_t activeClientIndex = -1;
+Phase currentPhase = Phase::BOOT;
+bool gameLocked = false;
+
+// MQTT Broker Implementation
+void QuizMQTTBroker::on_connected(const char * client_id) {
+  Serial.printf("MQTT Client connected: %s\n", client_id);
+}
+
+void QuizMQTTBroker::on_disconnected(const char * client_id) {
+  Serial.printf("MQTT Client disconnected: %s\n", client_id);
+  // Note: Game client cleanup handled in main loop via timeouts
+}
+
+// MQTT Message Handlers
+void handleClientJoin(const String& payload) {
+  StaticJsonDocument<200> doc;
+  DeserializationError error = deserializeJson(doc, payload);
+  
+  if (error) {
+    Serial.printf("JSON parse error: %s\n", error.c_str());
+    return;
+  }
+  
+  String clientId = doc[JsonKey::ID];
+  uint8_t capability = doc[JsonKey::CAPABILITY] | 8;  // default 8 if not provided
+  String firmware = doc[JsonKey::FIRMWARE] | "1.0";  // default if not provided
+  
+  Serial.printf("Client join request: %s (cap: %d, fw: %s)\n", 
+                clientId.c_str(), capability, firmware.c_str());
+  
+  // Check if game is locked
+  if (gameLocked) {
+    Serial.printf("Game locked, rejecting client %s\n", clientId.c_str());
+    return;
+  }
+  
+  // Check if already connected
+  for (uint8_t i = 0; i < gameClientCount; i++) {
+    if (gameClients[i].id == clientId) {
+      gameClients[i].connected = true;
+      gameClients[i].lastSeen = millis();
+      Serial.printf("Client %s reconnected\n", clientId.c_str());
+      sendClientAssignment(clientId, gameClients[i].slot, gameClients[i].color);
+      return;
+    }
+  }
+  
+  // Add new client
+  if (gameClientCount < MAX_CLIENTS) {
+    gameClients[gameClientCount].id = clientId;
+    gameClients[gameClientCount].slot = gameClientCount + 1;
+    gameClients[gameClientCount].color = PLAYER_COLORS[gameClientCount];
+    gameClients[gameClientCount].connected = true;
+    gameClients[gameClientCount].buzzed = false;
+    gameClients[gameClientCount].lastSeen = millis();
+    
+    Serial.printf("New client added: %s (slot %d, color R:%d G:%d B:%d)\n",
+                  clientId.c_str(), gameClients[gameClientCount].slot,
+                  gameClients[gameClientCount].color.r, gameClients[gameClientCount].color.g, gameClients[gameClientCount].color.b);
+    
+    sendClientAssignment(clientId, gameClients[gameClientCount].slot, gameClients[gameClientCount].color);
+    gameClientCount++;
+    
+    publishGameState();
+  } else {
+    Serial.printf("Max clients reached, rejecting %s\n", clientId.c_str());
+  }
+}
+
+void handleClientBuzz(const String& payload) {
+  if (currentPhase != Phase::OPEN) {
+    Serial.println("Buzz ignored - game not open");
+    return;
+  }
+  
+  StaticJsonDocument<200> doc;
+  DeserializationError error = deserializeJson(doc, payload);
+  
+  if (error) {
+    Serial.printf("Buzz JSON parse error: %s\n", error.c_str());
+    return;
+  }
+  
+  String clientId = doc[JsonKey::ID];
+  uint32_t timestamp = doc[JsonKey::TIMESTAMP] | millis(); // use current time if not provided
+  
+  // Check if client already buzzed
+  for (uint8_t i = 0; i < gameClientCount; i++) {
+    if (gameClients[i].id == clientId && gameClients[i].buzzed) {
+      Serial.printf("Client %s already buzzed, ignoring\n", clientId.c_str());
+      return;
+    }
+  }
+  
+  // Add to buzz queue
+  if (queueLength < MAX_CLIENTS) {
+    buzzQueue[queueLength] = clientId;
+    queueLength++;
+    
+    // Mark client as buzzed
+    for (uint8_t i = 0; i < gameClientCount; i++) {
+      if (gameClients[i].id == clientId) {
+        gameClients[i].buzzed = true;
+        break;
+      }
+    }
+    
+    Serial.printf("Buzz from %s (timestamp: %u), queue position: %d\n", 
+                  clientId.c_str(), timestamp, queueLength);
+    
+    // First buzz? Switch to ANSWER phase
+    if (queueLength == 1) {
+      currentPhase = Phase::ANSWER;
+      activeClientIndex = 0;
+      publishGameState();
+    }
+    
+    publishBuzzQueue();
+    if (ledController) {
+      ledController->updateServerLEDs();
+    }
+  }
+}
+
+void handleClientPing(const String& payload) {
+  StaticJsonDocument<100> doc;
+  DeserializationError error = deserializeJson(doc, payload);
+  
+  if (error) return;
+  
+  String clientId = doc[JsonKey::ID];
+  
+  // Update last seen timestamp
+  for (uint8_t i = 0; i < gameClientCount; i++) {
+    if (gameClients[i].id == clientId) {
+      gameClients[i].lastSeen = millis();
+      break;
+    }
+  }
+}
+
+// MQTT Publishers
+void sendClientAssignment(const String& clientId, uint8_t slot, const Rgb& color) {
+  StaticJsonDocument<200> doc;
+  doc[JsonKey::SLOT] = slot;
+  char colorHex[8];
+  sprintf(colorHex, "#%02X%02X%02X", color.r, color.g, color.b);
+  doc[JsonKey::COLOR] = colorHex;
+  
+  String message;
+  serializeJson(doc, message);
+  
+  String topic = String(Topic::ASSIGN) + clientId;
+  mqttBroker.publish(topic.c_str(), message.c_str(), true); // retained
+  
+  Serial.printf("Sent assignment to %s: slot %d, color %s\n", 
+                clientId.c_str(), slot, colorHex);
+}
+
+void publishGameState() {
+  StaticJsonDocument<200> doc;
+  doc[JsonKey::PHASE] = phaseToString(currentPhase);
+  doc[JsonKey::LOCKED] = gameLocked;
+  doc["gameClientCount"] = gameClientCount;
+  
+  String message;
+  serializeJson(doc, message);
+  
+  mqttBroker.publish(Topic::STATE, message.c_str(), true); // retained
+  Serial.printf("Published game state: %s\n", message.c_str());
+}
+
+void publishBuzzQueue() {
+  StaticJsonDocument<300> doc;
+  JsonArray order = doc.createNestedArray(JsonKey::ORDER);
+  
+  for (uint8_t i = 0; i < queueLength; i++) {
+    order.add(buzzQueue[i]);
+  }
+  
+  if (activeClientIndex >= 0 && activeClientIndex < queueLength) {
+    doc[JsonKey::ACTIVE] = buzzQueue[activeClientIndex];
+  }
+  
+  String message;
+  serializeJson(doc, message);
+  
+  mqttBroker.publish(Topic::QUEUE, message.c_str());
+  Serial.printf("Published buzz queue: %s\n", message.c_str());
+}
+
+void publishAnnounce() {
+  StaticJsonDocument<200> doc;
+  doc[JsonKey::VERSION] = PROTOCOL_VERSION;
+  doc[JsonKey::MAX_CLIENTS] = MAX_CLIENTS;
+  doc[JsonKey::LOCKED] = gameLocked;
+  
+  String message;
+  serializeJson(doc, message);
+  
+  mqttBroker.publish(Topic::ANNOUNCE, message.c_str(), true); // retained
+  Serial.printf("Published announce: %s\n", message.c_str());
+}
+
+void checkClientTimeouts() {
+  uint32_t now = millis();
+  for (uint8_t i = 0; i < gameClientCount; i++) {
+    if (gameClients[i].connected && (now - gameClients[i].lastSeen > 30000)) { // 30 second timeout
+      gameClients[i].connected = false;
+      Serial.printf("Client %s timed out\n", gameClients[i].id.c_str());
+    }
+  }
+}
