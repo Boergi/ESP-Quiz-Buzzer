@@ -20,6 +20,7 @@ public:
 class GameManager {
 private:
   uint32_t celebrationStart = 0;
+  uint32_t lastPingTime = 0;
   
 public:
   void handleButtonPress(ButtonPress press);
@@ -29,6 +30,15 @@ public:
   void nextClient();
   void correctAnswer();
   void resetToReady(); // Helper function
+  void handleClientJoin(const String& payload);
+  void handleClientBuzz(const String& payload);
+  void handleClientPing(const String& payload);
+  void checkClientTimeouts();
+  void publishAnnounce();
+  void publishGameState();
+  void publishBuzzQueue();
+  void sendClientAssignment(const String& clientId, uint8_t slot, const Rgb& color);
+  void sendPingToAllClients(); // New ping function
 };
 
 // Global instances

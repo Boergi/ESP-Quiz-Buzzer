@@ -1,5 +1,6 @@
 #include "mqtt_server.h"
 #include "led_controller.h"
+#include "game_manager.h"
 #include <ArduinoJson.h>
 
 // Global variables
@@ -8,6 +9,9 @@ ClientInfo gameClients[MAX_CLIENTS];
 uint8_t gameClientCount = 0;
 String buzzQueue[MAX_CLIENTS];
 uint8_t queueLength = 0;
+
+// Forward declaration
+extern GameManager* gameManager;
 int8_t activeClientIndex = -1;
 Phase currentPhase = Phase::BOOT;
 bool gameLocked = false;
@@ -72,7 +76,7 @@ void handleClientJoin(const String& payload) {
     sendClientAssignment(clientId, gameClients[gameClientCount].slot, gameClients[gameClientCount].color);
     gameClientCount++;
     
-    publishGameState();
+    gameManager->publishGameState();
   } else {
     Serial.printf("Max clients reached, rejecting %s\n", clientId.c_str());
   }
@@ -135,7 +139,7 @@ void handleClientBuzz(const String& payload) {
       mqttBroker.publish(Topic::CMD, activeMessage.c_str());
       Serial.printf("Sent ANIM_ACTIVE to first client: %s\n", clientId.c_str());
       
-      publishGameState();
+      gameManager->publishGameState();
     } else {
       Serial.printf("Additional buzz: %s added to queue (position %d)\n", clientId.c_str(), queueLength);
     }
@@ -147,7 +151,7 @@ void handleClientBuzz(const String& payload) {
     }
     Serial.println();
     
-    publishBuzzQueue();
+    gameManager->publishBuzzQueue();
     if (ledController) {
       ledController->updateServerLEDs();
     }
@@ -189,37 +193,7 @@ void sendClientAssignment(const String& clientId, uint8_t slot, const Rgb& color
                 clientId.c_str(), slot, colorHex);
 }
 
-void publishGameState() {
-  StaticJsonDocument<200> doc;
-  doc[JsonKey::PHASE] = phaseToString(currentPhase);
-  doc[JsonKey::LOCKED] = gameLocked;
-  doc["gameClientCount"] = gameClientCount;
-  
-  String message;
-  serializeJson(doc, message);
-  
-  mqttBroker.publish(Topic::STATE, message.c_str(), true); // retained
-  Serial.printf("Published game state: %s\n", message.c_str());
-}
-
-void publishBuzzQueue() {
-  StaticJsonDocument<300> doc;
-  JsonArray order = doc.createNestedArray(JsonKey::ORDER);
-  
-  for (uint8_t i = 0; i < queueLength; i++) {
-    order.add(buzzQueue[i]);
-  }
-  
-  if (activeClientIndex >= 0 && activeClientIndex < queueLength) {
-    doc[JsonKey::ACTIVE] = buzzQueue[activeClientIndex];
-  }
-  
-  String message;
-  serializeJson(doc, message);
-  
-  mqttBroker.publish(Topic::QUEUE, message.c_str());
-  Serial.printf("Published buzz queue: %s\n", message.c_str());
-}
+// Functions moved to GameManager class
 
 void publishAnnounce() {
   StaticJsonDocument<200> doc;

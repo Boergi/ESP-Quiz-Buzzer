@@ -279,6 +279,12 @@ void handleCommand(const String& payload) {
       clientManager->resetBuzzState();
       clientManager->setState(ClientState::IDLE);
       Serial.printf("Client RESET - can buzz again (gameIsOpen: %s)\n", gameIsOpen ? "true" : "false");
+    } else if (cmd == "PING_REQUEST") {
+      // Respond to server ping
+      if (clientMqtt && clientMqtt->isConnected()) {
+        clientMqtt->sendPing();
+        Serial.println("Responded to server ping");
+      }
     }
   }
   

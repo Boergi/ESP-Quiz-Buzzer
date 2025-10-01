@@ -145,25 +145,41 @@ void LEDController::showConnectedClients() {
 }
 
 void LEDController::animateReady() {
-  // Show ready state (all queue LEDs blinking white)
-  static uint32_t readyBlink = 0;
-  if (millis() - readyBlink > 500) {
-    static bool blinkState = false;
-    if (blinkState) {
-      for (uint8_t i = 8; i < 18; i++) {
-        setPixelColor(i, COLOR_WHITE);
-      }
-    } else {
-      clearQueueLEDs();
+  // Show ready state - connected clients with beautiful sine-wave pulsing like clients
+  static uint32_t lastUpdate = 0;
+  if (millis() - lastUpdate > PULSE_SPEED_MS) { // Same timing as client pulse
+    
+    // Calculate smooth sine-wave breathing effect (same as clients)
+    float breath = (sin(millis() * 0.003) + 1.0) * 0.5; // 0.0 to 1.0
+    uint8_t brightness = (uint8_t)(breath * 255);
+    
+    // Clear all LEDs first
+    for (uint16_t i = 0; i < LED_COUNT; i++) {
+      setPixelColor(i, Rgb(0, 0, 0));
     }
+    
+    // Show connected clients with beautiful pulsing in their colors on LEDs 9-18
+    for (uint8_t i = 0; i < gameClientCount && i < 10; i++) {
+      if (gameClients[i].connected) {
+        // Calculate smooth pulsed color using sine wave (same as clients)
+        Rgb pulseColor(
+          (uint8_t)(gameClients[i].color.r * brightness / 255),
+          (uint8_t)(gameClients[i].color.g * brightness / 255),
+          (uint8_t)(gameClients[i].color.b * brightness / 255)
+        );
+        
+        // Set LED at position 9+i (index 8+i)
+        setPixelColor(8 + i, pulseColor);
+      }
+    }
+    
     showLEDs(); // Show all changes at once
-    blinkState = !blinkState;
-    readyBlink = millis();
+    lastUpdate = millis();
   }
 }
 
 void LEDController::animateOpen() {
-  // Show "question open" animation (green breathing)
+  // Show "question open" animation (green breathing) - ONLY LEDs 1-8
   static uint32_t openPulse = 0;
   if (millis() - openPulse > 100) {
     static uint8_t brightness = 0;
@@ -174,8 +190,15 @@ void LEDController::animateOpen() {
       direction = -direction;
     }
     
+    // Clear ALL LEDs first
+    for (uint16_t i = 0; i < LED_COUNT; i++) {
+      setPixelColor(i, Rgb(0, 0, 0));
+    }
+    
+    // Only show green pulse on LEDs 1-8 (active player area)
     Rgb pulseColor(0, brightness, 0); // Green pulse
     setActivePlayerLEDs(pulseColor);
+    
     showLEDs(); // Show all changes at once
     openPulse = millis();
   }

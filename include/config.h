@@ -45,6 +45,10 @@ constexpr uint16_t MQTT_KEEPALIVE_INTERVAL = 60;
 constexpr uint8_t MAX_CLIENTS = 10;
 constexpr uint8_t MIN_CLIENTS_TO_START = 1;
 
+// Ping Configuration
+constexpr uint16_t PING_INTERVAL_MS = 5000;     // Ping every 5 seconds
+constexpr uint16_t CLIENT_TIMEOUT_MS = 10000;   // Consider client dead after 10 seconds
+
 // RGB Color Structure
 struct Rgb {
   uint8_t r, g, b;

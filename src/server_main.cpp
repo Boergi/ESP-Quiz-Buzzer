@@ -70,7 +70,7 @@ void setup() {
   
   // Publish initial announcements
   publishAnnounce();
-  publishGameState();
+  gameManager->publishGameState();
   
   // LED test sequence
   Serial.println("Starting LED test sequence...");
@@ -101,6 +101,7 @@ void loop() {
   // Handle game phases
   if (gameManager) {
     gameManager->handlePhase();
+    gameManager->sendPingToAllClients(); // Background ping system
   }
   
   // Check for client timeouts (every 5 seconds)

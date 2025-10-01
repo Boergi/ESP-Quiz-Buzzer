@@ -324,3 +324,54 @@ void GameManager::resetToReady() {
   Serial.println("=== CORRECT ANSWER - READY for next question ===");
   publishGameState();
 }
+
+void GameManager::sendPingToAllClients() {
+  if (millis() - lastPingTime < PING_INTERVAL_MS) {
+    return; // Not time for ping yet
+  }
+  
+  lastPingTime = millis();
+  
+  // Send ping request to all connected clients
+  StaticJsonDocument<100> doc;
+  doc[JsonKey::CMD] = "PING_REQUEST";
+  doc[JsonKey::TIMESTAMP] = millis();
+  
+  String message;
+  serializeJson(doc, message);
+  
+  mqttBroker.publish(Topic::CMD, message.c_str());
+  Serial.printf("Sent ping to all clients (count: %d)\n", gameClientCount);
+}
+
+void GameManager::publishGameState() {
+  StaticJsonDocument<200> doc;
+  doc[JsonKey::PHASE] = phaseToString(currentPhase);
+  doc[JsonKey::LOCKED] = gameLocked;
+  doc["gameClientCount"] = gameClientCount;
+  
+  String message;
+  serializeJson(doc, message);
+  
+  mqttBroker.publish(Topic::STATE, message.c_str(), true); // retained
+  Serial.printf("Published game state: %s\n", message.c_str());
+}
+
+void GameManager::publishBuzzQueue() {
+  StaticJsonDocument<300> doc;
+  JsonArray order = doc.createNestedArray(JsonKey::ORDER);
+  
+  for (uint8_t i = 0; i < queueLength; i++) {
+    order.add(buzzQueue[i]);
+  }
+  
+  if (activeClientIndex >= 0 && activeClientIndex < queueLength) {
+    doc[JsonKey::ACTIVE] = buzzQueue[activeClientIndex];
+  }
+  
+  String message;
+  serializeJson(doc, message);
+  
+  mqttBroker.publish(Topic::QUEUE, message.c_str());
+  Serial.printf("Published buzz queue: %s\n", message.c_str());
+}
