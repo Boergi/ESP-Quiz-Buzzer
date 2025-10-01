@@ -55,18 +55,18 @@ struct Rgb {
   constexpr Rgb(uint8_t red = 0, uint8_t green = 0, uint8_t blue = 0) : r(red), g(green), b(blue) {}
 };
 
-// Player Colors (10 unique colors, excluding white)
+// Player Colors (10 unique colors, clearly distinguishable)
 constexpr Rgb PLAYER_COLORS[MAX_CLIENTS] = {
-  Rgb(255, 59, 48),   // 1. Rot
-  Rgb(0, 122, 255),   // 2. Blau  
-  Rgb(52, 199, 89),   // 3. Grün
-  Rgb(255, 204, 0),   // 4. Gelb
-  Rgb(255, 45, 85),   // 5. Magenta
-  Rgb(50, 173, 230),  // 6. Cyan
-  Rgb(255, 149, 0),   // 7. Orange
-  Rgb(175, 82, 222),  // 8. Lila
-  Rgb(26, 188, 156),  // 9. Türkis
-  Rgb(88, 86, 214)    // 10. Indigo
+  Rgb(255, 0, 0),     // 1. Reines Rot
+  Rgb(0, 0, 255),     // 2. Reines Blau  
+  Rgb(0, 255, 0),     // 3. Reines Grün
+  Rgb(255, 255, 0),   // 4. Reines Gelb
+  Rgb(255, 0, 255),   // 5. Reines Magenta
+  Rgb(0, 255, 255),   // 6. Reines Cyan
+  Rgb(255, 128, 0),   // 7. Orange
+  Rgb(128, 0, 255),   // 8. Violett
+  Rgb(255, 192, 203), // 9. Rosa/Pink
+  Rgb(255, 255, 255)  // 10. Weiß
 };
 
 // Special Colors

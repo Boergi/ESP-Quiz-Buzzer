@@ -165,9 +165,9 @@ void ClientLEDController::animateDisconnected() {
   }
 }
 
-void ClientLEDController::showLocked() {
-  // All LEDs white (after buzz)
-  setAllLEDs(COLOR_WHITE);
+void ClientLEDController::showLocked(const Rgb& color) {
+  // Show solid player color after buzz - same as waiting states (LOBBY/READY)
+  setAllLEDs(color);
 }
 
 // Test functions

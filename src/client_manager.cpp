@@ -67,7 +67,11 @@ void ClientManager::handleStateAnimations() {
       break;
       
     case ClientState::LOCKED_AFTER_BUZZ:
-      clientLedController->showLocked();
+      if (isAssigned()) {
+        clientLedController->showLocked(data.assignedColor);
+      } else {
+        clientLedController->animateDisconnected();
+      }
       break;
       
     case ClientState::ACTIVE_TURN:

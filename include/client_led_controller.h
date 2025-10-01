@@ -24,7 +24,7 @@ public:
   void animateFlash(const Rgb& color);          // Quick flash animation
   void animateCelebration();                    // Rainbow animation
   void animateDisconnected();                   // Red pulse (no connection)
-  void showLocked();                            // All white (buzzed)
+  void showLocked(const Rgb& color);            // Solid player color (buzzed)
   
   // Test functions
   void runColorTest();
