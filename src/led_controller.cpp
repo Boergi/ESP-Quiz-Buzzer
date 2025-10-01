@@ -105,6 +105,107 @@ void LEDController::updateServerLEDs() {
 }
 
 // Animation functions
+void LEDController::animateLobby() {
+  // Langsames Lauflicht in Weiß/Blau auf LEDs 1-8 (Ring)
+  static uint32_t lastUpdate = 0;
+  static uint8_t position = 0;
+  static bool useBlue = false;
+  
+  if (millis() - lastUpdate > 300) { // Langsam: 300ms pro LED
+    // Clear LEDs 1-8 (indices 0-7)
+    for (uint8_t i = 0; i < 8; i++) {
+      setPixelColor(i, Rgb(0, 0, 0));
+    }
+    
+    // Set current position
+    Rgb chaseColor = useBlue ? Rgb(100, 150, 255) : Rgb(200, 200, 200); // Blau oder Weiß
+    setPixelColor(position, chaseColor);
+    
+    // Add trailing LED with reduced brightness
+    uint8_t trailPos = (position == 0) ? 7 : position - 1;
+    Rgb trailColor = useBlue ? Rgb(30, 45, 80) : Rgb(60, 60, 60);
+    setPixelColor(trailPos, trailColor);
+    
+    // Keep client display on LEDs 9-18 if clients connected
+    if (gameClientCount > 0) {
+      for (uint8_t i = 0; i < gameClientCount && i < 10; i++) {
+        if (gameClients[i].connected) {
+          setQueueLED(i, gameClients[i].color);
+        }
+      }
+    }
+    
+    showLEDs();
+    
+    position = (position + 1) % 8;
+    if (position == 0) {
+      useBlue = !useBlue; // Wechsel zwischen Weiß und Blau nach jeder Runde
+    }
+    
+    lastUpdate = millis();
+  }
+}
+
+void LEDController::animateReadyPingPong() {
+  // Zweifarbiges Ping-Pong auf LEDs 1-8 (Ring)
+  static uint32_t lastUpdate = 0;
+  static uint8_t pos1 = 0;     // Erste LED (Grün)
+  static uint8_t pos2 = 4;     // Zweite LED (Orange) - gegenüber
+  static int8_t dir1 = 1;      // Richtung LED 1
+  static int8_t dir2 = -1;     // Richtung LED 2 (gegenläufig)
+  
+  if (millis() - lastUpdate > 150) { // Mittlere Geschwindigkeit
+    // Clear LEDs 1-8 (indices 0-7)
+    for (uint8_t i = 0; i < 8; i++) {
+      setPixelColor(i, Rgb(0, 0, 0));
+    }
+    
+    // Set ping-pong LEDs
+    setPixelColor(pos1, Rgb(0, 255, 0));   // Grün
+    setPixelColor(pos2, Rgb(255, 150, 0)); // Orange
+    
+    // Keep client display on LEDs 9-18 with pulsing
+    float breath = (sin(millis() * 0.003) + 1.0) * 0.5; // 0.0 to 1.0
+    uint8_t brightness = (uint8_t)(breath * 255);
+    
+    for (uint8_t i = 0; i < gameClientCount && i < 10; i++) {
+      if (gameClients[i].connected) {
+        Rgb pulseColor(
+          (gameClients[i].color.r * brightness) / 255,
+          (gameClients[i].color.g * brightness) / 255,
+          (gameClients[i].color.b * brightness) / 255
+        );
+        setQueueLED(i, pulseColor);
+      }
+    }
+    
+    showLEDs();
+    
+    // Move LEDs
+    pos1 += dir1;
+    pos2 += dir2;
+    
+    // Bounce logic for LED 1
+    if (pos1 >= 7) {
+      pos1 = 7;
+      dir1 = -1;
+    } else if (pos1 <= 0) {
+      pos1 = 0;
+      dir1 = 1;
+    }
+    
+    // Bounce logic for LED 2
+    if (pos2 >= 7) {
+      pos2 = 7;
+      dir2 = -1;
+    } else if (pos2 <= 0) {
+      pos2 = 0;
+      dir2 = 1;
+    }
+    
+    lastUpdate = millis();
+  }
+}
 
 void LEDController::testQueueDisplay() {
   static uint8_t queuePos = 0;

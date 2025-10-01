@@ -24,6 +24,8 @@ public:
   void updateServerLEDs();
   
   // Animation functions
+  void animateLobby();
+  void animateReadyPingPong();
   void testQueueDisplay();
   void showConnectedClients();
   void animateReady();

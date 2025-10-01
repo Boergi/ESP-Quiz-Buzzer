@@ -108,16 +108,13 @@ void GameManager::handlePhase() {
       break;
       
     case Phase::LOBBY:
-      // Show connected clients or test queue display
-      if (gameClientCount > 0) {
-        ledController->showConnectedClients();
-      } else {
-        ledController->testQueueDisplay();
-      }
+      // Langsames Lauflicht auf LEDs 1-8 + Client-Anzeige auf LEDs 9-18
+      ledController->animateLobby();
       break;
       
     case Phase::READY:
-      ledController->animateReady();
+      // Ping-Pong Animation auf LEDs 1-8 + Client-Anzeige auf LEDs 9-18
+      ledController->animateReadyPingPong();
       break;
       
     case Phase::OPEN:
