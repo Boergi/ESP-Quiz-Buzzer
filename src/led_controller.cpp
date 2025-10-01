@@ -36,14 +36,14 @@ void LEDController::setActivePlayerLEDs(const Rgb& color) {
   for (uint8_t i = 0; i < 8; i++) {
     setPixelColor(i, color);
   }
-  strip.show();
+  // Don't call strip.show() here - let caller decide when to update
 }
 
 void LEDController::setQueueLED(uint8_t position, const Rgb& color) {
   // LEDs 8-17 (positions 9-18) for queue display
   if (position < 10) {
     setPixelColor(8 + position, color);
-    strip.show();
+    // Don't call strip.show() here - let caller decide when to update
   }
 }
 
@@ -51,12 +51,12 @@ void LEDController::clearQueueLEDs() {
   for (uint8_t i = 8; i < 18; i++) {
     setPixelColor(i, COLOR_BLACK);
   }
-  strip.show();
+  // Don't call strip.show() here - let caller decide when to update
 }
 
 void LEDController::updateServerLEDs() {
-  // Clear all LEDs first
-  clearAllLEDs();
+  // Clear all LEDs first (but don't show yet)
+  strip.clear();
   
   // Show active client on LEDs 0-7 (positions 1-8)
   if (activeClientIndex >= 0 && activeClientIndex < queueLength) {
@@ -79,6 +79,9 @@ void LEDController::updateServerLEDs() {
       }
     }
   }
+  
+  // Now show all changes at once
+  showLEDs();
 }
 
 // Animation functions
@@ -87,10 +90,11 @@ void LEDController::testColorCycle() {
   static uint32_t lastUpdate = 0;
   
   if (millis() - lastUpdate > 1000) {
-    clearAllLEDs();
+    strip.clear();
     
     // Show current color on active player LEDs
     setActivePlayerLEDs(PLAYER_COLORS[colorIndex]);
+    showLEDs(); // Show all changes at once
     
     // Show color info on Serial
     Serial.printf("Testing Color %d: R=%d G=%d B=%d\n", 
@@ -115,6 +119,7 @@ void LEDController::testQueueDisplay() {
     for (uint8_t i = 0; i <= queuePos && i < MAX_CLIENTS; i++) {
       setQueueLED(i, PLAYER_COLORS[i]);
     }
+    showLEDs(); // Show all changes at once
     
     Serial.printf("Queue Test: Position %d\n", queuePos + 1);
     
@@ -126,11 +131,15 @@ void LEDController::testQueueDisplay() {
 void LEDController::showConnectedClients() {
   static uint32_t lastUpdate = 0;
   if (millis() - lastUpdate > 100) {
-    clearAllLEDs();
-    for (uint8_t i = 0; i < gameClientCount && i < 8; i++) {
-      setPixelColor(i, gameClients[i].color);
+    strip.clear(); // Clear but don't show yet
+    
+    // Show connected clients on LEDs 9-18 (queue area)
+    for (uint8_t i = 0; i < gameClientCount && i < MAX_CLIENTS; i++) {
+      setQueueLED(i, gameClients[i].color);
     }
-    strip.show();
+    
+    // LEDs 1-8 remain off (status area)
+    showLEDs(); // Show all changes at once
     lastUpdate = millis();
   }
 }
@@ -147,7 +156,7 @@ void LEDController::animateReady() {
     } else {
       clearQueueLEDs();
     }
-    strip.show();
+    showLEDs(); // Show all changes at once
     blinkState = !blinkState;
     readyBlink = millis();
   }
@@ -167,6 +176,7 @@ void LEDController::animateOpen() {
     
     Rgb pulseColor(0, brightness, 0); // Green pulse
     setActivePlayerLEDs(pulseColor);
+    showLEDs(); // Show all changes at once
     openPulse = millis();
   }
 }

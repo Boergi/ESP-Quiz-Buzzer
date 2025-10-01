@@ -3,7 +3,13 @@
 
 // Hardware Pin Configuration (unified for Server & Client)
 constexpr uint8_t LED_PIN = 5;      // WS2812B Data Pin (both Server & Client)
-constexpr uint8_t BUTTON_PIN = 18;  // Button Pin with INPUT_PULLUP (both Server & Client)
+constexpr uint8_t BUTTON_PIN = 18;  // Main Button Pin with INPUT_PULLUP (both Server & Client)
+
+// Additional Server Buttons (for Quiz Master control)
+#ifdef SERVER
+  constexpr uint8_t NEXT_BUTTON_PIN = 19;     // "Nächster Client" / "Falsche Antwort"
+  constexpr uint8_t CORRECT_BUTTON_PIN = 21;  // "Richtige Antwort" / "Weiter"
+#endif
 
 // LED Count (differs between Server & Client)
 #ifdef SERVER

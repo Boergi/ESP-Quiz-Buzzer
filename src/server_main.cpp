@@ -42,7 +42,7 @@ void setup() {
   // Initialize WiFi Access Point
   Serial.println("Setting up WiFi Access Point...");
   WiFi.mode(WIFI_AP);
-  WiFi.softAP(WIFI_SSID, WIFI_PSK);
+  WiFi.softAP(WIFI_SSID, WIFI_PSK, 1, 0, MAX_CLIENTS); // channel=1, hidden=false, max_clients=10
   WiFi.softAPConfig(IPAddress(AP_IP_ADDR), IPAddress(AP_GATEWAY_ADDR), IPAddress(AP_SUBNET_ADDR));
   
   Serial.printf("AP SSID: %s\n", WIFI_SSID);

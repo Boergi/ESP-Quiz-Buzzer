@@ -92,10 +92,16 @@ void ClientManager::handleStateAnimations() {
     case ClientState::WRONG_FLASH:
       clientLedController->animateFlash(COLOR_ERROR);
       // Auto-return to idle after flash
-      static uint32_t flashStart = millis();
+      static uint32_t flashStart = 0;
+      if (flashStart == 0) {
+        flashStart = millis();
+      }
       if (millis() - flashStart > FLASH_DURATION_MS * 4) {
+        // Reset buzz state so client can buzz again
+        resetBuzzState();
         setState(ClientState::IDLE);
-        flashStart = millis() + 60000; // Don't repeat
+        flashStart = 0; // Reset for next time
+        Serial.println("WRONG_FLASH complete - can buzz again");
       }
       break;
       

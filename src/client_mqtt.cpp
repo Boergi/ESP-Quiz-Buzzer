@@ -219,7 +219,7 @@ void handleGameState(const String& payload) {
   Phase phase = stringToPhase(phaseStr.c_str());
   
   // Update global gameIsOpen state
-  gameIsOpen = (phase == Phase::OPEN);
+  gameIsOpen = (phase == Phase::OPEN || phase == Phase::ANSWER);
   
   if (phase == Phase::OPEN && clientManager && clientManager->canBuzz()) {
     // Game is open for buzzing
@@ -269,10 +269,16 @@ void handleCommand(const String& payload) {
       clientManager->setState(ClientState::CELEBRATE);
     } else if (cmd == Command::WRONG_FLASH) {
       clientManager->setState(ClientState::WRONG_FLASH);
+    } else if (cmd == Command::ANIM_ACTIVE) {
+      clientManager->setState(ClientState::ACTIVE_TURN);
     } else if (cmd == Command::LIGHT_WHITE) {
       clientManager->setState(ClientState::LOCKED_AFTER_BUZZ);
     } else if (cmd == Command::IDLE_COLOR) {
       clientManager->setState(ClientState::IDLE);
+    } else if (cmd == Command::RESET) {
+      clientManager->resetBuzzState();
+      clientManager->setState(ClientState::IDLE);
+      Serial.printf("Client RESET - can buzz again (gameIsOpen: %s)\n", gameIsOpen ? "true" : "false");
     }
   }
   

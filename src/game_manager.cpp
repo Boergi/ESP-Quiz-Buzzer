@@ -204,13 +204,78 @@ void GameManager::startQuestion() {
 }
 
 void GameManager::nextClient() {
-  // Next client in queue
-  if (activeClientIndex + 1 < queueLength) {
-    activeClientIndex++;
-    if (ledController) {
-      ledController->updateServerLEDs();
+  // Wrong answer - remove current client from queue and reset them
+  if (activeClientIndex >= 0 && activeClientIndex < queueLength) {
+    String wrongClientId = buzzQueue[activeClientIndex];
+    
+    // Send WRONG_FLASH command to current client
+    StaticJsonDocument<200> doc;
+    doc[JsonKey::CMD] = Command::WRONG_FLASH;
+    doc[JsonKey::TARGET] = wrongClientId;
+    
+    String message;
+    serializeJson(doc, message);
+    mqttBroker.publish(Topic::CMD, message.c_str());
+    Serial.printf("Sent WRONG_FLASH to %s\n", wrongClientId.c_str());
+    
+    // Also send RESET command after a short delay to ensure client can buzz again
+    delay(100); // Small delay to ensure WRONG_FLASH is processed first
+    StaticJsonDocument<200> resetDoc;
+    resetDoc[JsonKey::CMD] = Command::RESET;
+    resetDoc[JsonKey::TARGET] = wrongClientId;
+    
+    String resetMessage;
+    serializeJson(resetDoc, resetMessage);
+    mqttBroker.publish(Topic::CMD, resetMessage.c_str());
+    Serial.printf("Sent RESET to %s\n", wrongClientId.c_str());
+    
+    // Reset client's buzzed state (allow them to buzz again)
+    for (uint8_t i = 0; i < gameClientCount; i++) {
+      if (gameClients[i].id == wrongClientId) {
+        gameClients[i].buzzed = false;
+        Serial.printf("Reset %s - can buzz again\n", wrongClientId.c_str());
+        break;
+      }
     }
-    Serial.printf("Next client active: %s\n", buzzQueue[activeClientIndex].c_str());
+    
+    // Remove client from queue (shift all following clients forward)
+    for (uint8_t i = activeClientIndex; i < queueLength - 1; i++) {
+      buzzQueue[i] = buzzQueue[i + 1];
+    }
+    queueLength--;
+    
+    // activeClientIndex stays the same (next client is now at same index)
+    // Check if there's still a client at current index
+    if (activeClientIndex < queueLength) {
+      String nextClientId = buzzQueue[activeClientIndex];
+      
+      // Send ANIM_ACTIVE command to next client
+      StaticJsonDocument<200> nextDoc;
+      nextDoc[JsonKey::CMD] = Command::ANIM_ACTIVE;
+      nextDoc[JsonKey::TARGET] = nextClientId;
+      
+      String nextMessage;
+      serializeJson(nextDoc, nextMessage);
+      mqttBroker.publish(Topic::CMD, nextMessage.c_str());
+      Serial.printf("Sent ANIM_ACTIVE to next client: %s\n", nextClientId.c_str());
+      
+      // Update server LEDs
+      if (ledController) {
+        ledController->updateServerLEDs();
+      }
+      
+      // Publish updated queue
+      publishBuzzQueue();
+    } else {
+      // No more clients in queue - back to OPEN phase
+      activeClientIndex = -1;
+      currentPhase = Phase::OPEN;
+      Serial.println("=== No more clients in queue - back to OPEN ===");
+      publishGameState();
+      if (ledController) {
+        ledController->clearAllLEDs();
+      }
+    }
   }
 }
 

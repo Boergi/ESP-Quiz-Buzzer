@@ -79,8 +79,8 @@ void handleClientJoin(const String& payload) {
 }
 
 void handleClientBuzz(const String& payload) {
-  if (currentPhase != Phase::OPEN) {
-    Serial.println("Buzz ignored - game not open");
+  if (currentPhase != Phase::OPEN && currentPhase != Phase::ANSWER) {
+    Serial.printf("Buzz ignored - game phase is %s (need OPEN or ANSWER)\n", phaseToString(currentPhase));
     return;
   }
   
@@ -116,15 +116,36 @@ void handleClientBuzz(const String& payload) {
       }
     }
     
-    Serial.printf("Buzz from %s (timestamp: %u), queue position: %d\n", 
-                  clientId.c_str(), timestamp, queueLength);
+    Serial.printf("BUZZ from %s (timestamp: %u), queue position: %d/%d\n", 
+                  clientId.c_str(), timestamp, queueLength, MAX_CLIENTS);
     
-    // First buzz? Switch to ANSWER phase
+    // First buzz? Switch to ANSWER phase and send ANIM_ACTIVE
     if (queueLength == 1) {
       currentPhase = Phase::ANSWER;
       activeClientIndex = 0;
+      Serial.printf("=== FIRST BUZZ! %s is now ACTIVE (index %d) ===\n", clientId.c_str(), activeClientIndex);
+      
+      // Send ANIM_ACTIVE command to first client
+      StaticJsonDocument<200> activeDoc;
+      activeDoc[JsonKey::CMD] = Command::ANIM_ACTIVE;
+      activeDoc[JsonKey::TARGET] = clientId;
+      
+      String activeMessage;
+      serializeJson(activeDoc, activeMessage);
+      mqttBroker.publish(Topic::CMD, activeMessage.c_str());
+      Serial.printf("Sent ANIM_ACTIVE to first client: %s\n", clientId.c_str());
+      
       publishGameState();
+    } else {
+      Serial.printf("Additional buzz: %s added to queue (position %d)\n", clientId.c_str(), queueLength);
     }
+    
+    // Debug: Print current queue
+    Serial.print("Current buzz queue: ");
+    for (uint8_t i = 0; i < queueLength; i++) {
+      Serial.printf("[%d]%s ", i, buzzQueue[i].c_str());
+    }
+    Serial.println();
     
     publishBuzzQueue();
     if (ledController) {
