@@ -94,8 +94,8 @@ void GameManager::handlePhase() {
   
   switch(currentPhase) {
     case Phase::BOOT:
-      // Initialize and test LEDs
-      ledController->testColorCycle();
+      // Boot phase - LEDs off, waiting for manual transition
+      ledController->clearAllLEDs();
       
       // Auto-transition to LOBBY after 15 seconds
       static uint32_t bootStart = millis();

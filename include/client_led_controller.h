@@ -15,7 +15,7 @@ public:
   void setPixelColor(uint16_t pixel, const Rgb& color);
   void clearAllLEDs();
   void setAllLEDs(const Rgb& color);
-  void showWhiteTest();
+  void showRGBTest();
   
   // Client-specific animations
   void showSolidColor(const Rgb& color);        // Solid color (not OPEN)

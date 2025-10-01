@@ -14,7 +14,7 @@ public:
   // Basic LED functions
   void setPixelColor(uint16_t pixel, const Rgb& color);
   void clearAllLEDs();
-  void showWhiteTest();
+  void showRGBTest();
   void showLEDs(); // Call strip.show()
   
   // Server-specific LED functions (18 LEDs)
@@ -24,7 +24,6 @@ public:
   void updateServerLEDs();
   
   // Animation functions
-  void testColorCycle();
   void testQueueDisplay();
   void showConnectedClients();
   void animateReady();

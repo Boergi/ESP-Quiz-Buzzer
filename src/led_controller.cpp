@@ -19,11 +19,31 @@ void LEDController::clearAllLEDs() {
   strip.show();
 }
 
-void LEDController::showWhiteTest() {
+void LEDController::showRGBTest() {
+  // Test all 3 basic colors on ALL 18 LEDs to verify RGB functionality
+  Serial.println("Testing RED on all 18 LEDs...");
   for (uint16_t i = 0; i < LED_COUNT; i++) {
-    setPixelColor(i, COLOR_WHITE);
+    setPixelColor(i, Rgb(255, 0, 0)); // RED
   }
   strip.show();
+  delay(1000);
+  
+  Serial.println("Testing GREEN on all 18 LEDs...");
+  for (uint16_t i = 0; i < LED_COUNT; i++) {
+    setPixelColor(i, Rgb(0, 255, 0)); // GREEN
+  }
+  strip.show();
+  delay(1000);
+  
+  Serial.println("Testing BLUE on all 18 LEDs...");
+  for (uint16_t i = 0; i < LED_COUNT; i++) {
+    setPixelColor(i, Rgb(0, 0, 255)); // BLUE
+  }
+  strip.show();
+  delay(1000);
+  
+  Serial.println("RGB test complete on all 18 LEDs!");
+  clearAllLEDs();
 }
 
 void LEDController::showLEDs() {
@@ -85,28 +105,6 @@ void LEDController::updateServerLEDs() {
 }
 
 // Animation functions
-void LEDController::testColorCycle() {
-  static uint8_t colorIndex = 0;
-  static uint32_t lastUpdate = 0;
-  
-  if (millis() - lastUpdate > 1000) {
-    strip.clear();
-    
-    // Show current color on active player LEDs
-    setActivePlayerLEDs(PLAYER_COLORS[colorIndex]);
-    showLEDs(); // Show all changes at once
-    
-    // Show color info on Serial
-    Serial.printf("Testing Color %d: R=%d G=%d B=%d\n", 
-                  colorIndex + 1, 
-                  PLAYER_COLORS[colorIndex].r,
-                  PLAYER_COLORS[colorIndex].g,
-                  PLAYER_COLORS[colorIndex].b);
-    
-    colorIndex = (colorIndex + 1) % MAX_CLIENTS;
-    lastUpdate = millis();
-  }
-}
 
 void LEDController::testQueueDisplay() {
   static uint8_t queuePos = 0;

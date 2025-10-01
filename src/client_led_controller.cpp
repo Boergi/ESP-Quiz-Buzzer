@@ -25,8 +25,22 @@ void ClientLEDController::setAllLEDs(const Rgb& color) {
   strip.show();
 }
 
-void ClientLEDController::showWhiteTest() {
-  setAllLEDs(COLOR_WHITE);
+void ClientLEDController::showRGBTest() {
+  // Test all 3 basic colors to verify RGB functionality
+  Serial.println("Testing RED...");
+  setAllLEDs(Rgb(255, 0, 0)); // RED
+  delay(800);
+  
+  Serial.println("Testing GREEN...");
+  setAllLEDs(Rgb(0, 255, 0)); // GREEN
+  delay(800);
+  
+  Serial.println("Testing BLUE...");
+  setAllLEDs(Rgb(0, 0, 255)); // BLUE
+  delay(800);
+  
+  Serial.println("RGB test complete!");
+  clearAllLEDs();
 }
 
 // Client-specific animations

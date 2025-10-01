@@ -72,11 +72,9 @@ void setup() {
   publishAnnounce();
   gameManager->publishGameState();
   
-  // LED test sequence
-  Serial.println("Starting LED test sequence...");
-  ledController->showWhiteTest();
-  delay(1000);
-  ledController->clearAllLEDs();
+  // RGB LED test sequence on all 18 LEDs
+  Serial.println("Starting RGB LED test on all 18 LEDs...");
+  ledController->showRGBTest();
   
   Serial.println("=== PHASE: BOOT ===");
   Serial.println("Phase Controls:");

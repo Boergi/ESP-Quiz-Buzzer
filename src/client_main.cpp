@@ -42,14 +42,9 @@ void setup() {
   // Initialize Client Manager
   clientManager = new ClientManager();
   
-  // LED test sequence
-  Serial.println("Starting LED test...");
-  clientLedController->showWhiteTest();
-  delay(500);
-  clientLedController->clearAllLEDs();
-  
-  // Color test cycle
-  clientLedController->runColorTest();
+  // RGB LED test sequence
+  Serial.println("Starting RGB LED test...");
+  clientLedController->showRGBTest();
   
   // Start MQTT connection
   clientMqtt->begin();
