@@ -278,27 +278,24 @@ void LEDController::animateReady() {
 }
 
 void LEDController::animateOpen() {
-  // Show "question open" animation (green breathing) - ONLY LEDs 1-8
-  static uint32_t openPulse = 0;
-  if (millis() - openPulse > 100) {
-    static uint8_t brightness = 0;
-    static int8_t direction = 1;
+  // Show "question open" animation with beautiful sine-wave green breathing like clients
+  static uint32_t lastUpdate = 0;
+  if (millis() - lastUpdate > PULSE_SPEED_MS) { // Same timing as client pulse
     
-    brightness += direction * 8;
-    if (brightness >= 255 || brightness <= 0) {
-      direction = -direction;
-    }
+    // Calculate smooth sine-wave breathing effect (same as clients)
+    float breath = (sin(millis() * 0.003) + 1.0) * 0.5; // 0.0 to 1.0
+    uint8_t brightness = (uint8_t)(breath * 255);
     
     // Clear ALL LEDs first
     for (uint16_t i = 0; i < LED_COUNT; i++) {
       setPixelColor(i, Rgb(0, 0, 0));
     }
     
-    // Only show green pulse on LEDs 1-8 (active player area)
-    Rgb pulseColor(0, brightness, 0); // Green pulse
+    // Beautiful green sine-wave pulse on LEDs 1-8 (active player area)
+    Rgb pulseColor(0, brightness, 0); // Green with sine-wave brightness
     setActivePlayerLEDs(pulseColor);
     
     showLEDs(); // Show all changes at once
-    openPulse = millis();
+    lastUpdate = millis();
   }
 }
