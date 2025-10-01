@@ -146,7 +146,69 @@ pio device monitor --environment client
 - Client WiFi-Verbindung zum Server
 - Grundlegende MQTT-Kommunikation
 
+---
+
+## 🔧 Technische Spezifikationen
+
+### Hardware-Konfiguration
+
+#### Server (Quiz-Master Station)
+- **ESP32 Dev Board**
+- **18 WS2812B LEDs:** LEDs 1-8 (Spielstatus), LEDs 9-18 (Spieler-Anzeige)
+- **1 Haupt-Button:** GPIO 18 (Spielsteuerung)
+- **2 Admin-Buttons:** GPIO 19 & 21 (für zukünftige Features)
+- **LED-Data Pin:** GPIO 5
+- **Akkubetrieb:** Integrierter Akku
+
+#### Clients (Spieler-Buzzer)
+- **ESP32 Dev Board**
+- **8 WS2812B LEDs:** LED-Ring für Status und Animationen
+- **1 Buzzer-Button:** GPIO 18
+- **LED-Data Pin:** GPIO 5
+- **Akkubetrieb:** Integrierter Akku
+
+### Netzwerk-Konfiguration
+- **SSID:** QUIZ-HUB
+- **Passwort:** quiz12345
+- **IP-Bereich:** 192.168.4.x
+- **Server IP:** 192.168.4.1
+- **Max. Clients:** 10
+- **MQTT Port:** 1883
+
+### Timing-Parameter
+- **Kurzer Button-Druck:** < 600ms
+- **Langer Button-Druck:** ≥ 1200ms
+- **Sehr langer Button-Druck:** ≥ 4000ms
+- **Celebration-Dauer:** 5 Sekunden
+- **Client-Timeout:** 10 Sekunden
+- **Ping-Intervall:** 5 Sekunden
+
+### Stromverbrauch (Akkubetrieb)
+- **Server:** ~2A bei 5V (18 LEDs + ESP32)
+- **Client:** ~1A bei 5V (8 LEDs + ESP32)
+- **Gesamt:** ~12A für komplettes System (1 Server + 10 Clients)
+- **Akkulaufzeit:** Abhängig von Akku-Kapazität und LED-Helligkeit
+
+### Player-Farben (RGB-Werte)
+| Nr. | Farbe | RGB | Nr. | Farbe | RGB |
+|-----|-------|-----|-----|-------|-----|
+| 1 | 🔴 Rot | (255,0,0) | 6 | 🔵 Cyan | (0,255,255) |
+| 2 | 🔵 Blau | (0,0,255) | 7 | 🟠 Orange | (255,128,0) |
+| 3 | 🟢 Grün | (0,255,0) | 8 | 🟣 Violett | (128,0,255) |
+| 4 | 🟡 Gelb | (255,255,0) | 9 | 🩷 Rosa | (255,192,203) |
+| 5 | 🟣 Magenta | (255,0,255) | 10 | ⚪ Weiß | (255,255,255) |
+
+### Bibliotheken
+- **Adafruit NeoPixel:** LED-Steuerung
+- **Bounce2:** Button-Entprellung
+- **ArduinoJson:** MQTT-Nachrichten
+- **PubSubClient:** MQTT-Client (Clients)
+- **PicoMQTT:** MQTT-Broker (Server)
+
+---
+
 ## 📚 Weitere Dokumentation
 
-Siehe `esp_32_quiz_buzzer_server_clients_umsetzungsleitfaden_fur_platform_io.md` für vollständige Spezifikation und alle geplanten Features.
+- **Bedienungsanleitung:** `BEDIENUNGSANLEITUNG_QUIZ_DJ.md` - Für Quiz-Master
+- **Vollständige Spezifikation:** `esp_32_quiz_buzzer_server_clients_umsetzungsleitfaden_fur_platform_io.md`
 
