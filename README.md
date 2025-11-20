@@ -38,10 +38,12 @@ A quiz buzzer system with one ESP32 server and multiple ESP32 clients, connected
 
 #### Additional Components (both Server & Clients)
 
-- **Series Resistor:** 330-470Ω for LED data line protection
-- **Capacitor:** 1000µF electrolytic capacitor (5V ↔ GND) for power stabilization
+- **Series Resistor:** 330-470Ω for LED data line protection *(optional - works fine without it)*
+- **Capacitor:** 1000µF electrolytic capacitor (5V ↔ GND) for power stabilization *(optional - works fine without it)*
 - **Wiring:** Suitable gauge wire for connections
 - **Case/Housing:** Custom 3D-printed or purchased enclosure (optional)
+
+> **Note:** The series resistor and capacitor are traditionally recommended for WS2812B LED projects, but the system has been tested and works reliably without them. Feel free to omit them for a simpler build!
 
 ### Build Specifications
 
@@ -53,8 +55,8 @@ A quiz buzzer system with one ESP32 server and multiple ESP32 clients, connected
 - 1x Button Spring
 - 1x Lithium Battery Charging Module
 - 1x 3.7V 8000mAh LiPo Battery
-- 1x 470Ω Resistor
-- 1x 1000µF Capacitor
+- 1x 470Ω Resistor *(optional)*
+- 1x 1000µF Capacitor *(optional)*
 
 #### Client (Player Buzzer) - Build 10x
 - 1x ESP32-CH340C-TYPEC Board
@@ -63,8 +65,8 @@ A quiz buzzer system with one ESP32 server and multiple ESP32 clients, connected
 - 1x Button Spring
 - 1x Lithium Battery Charging Module
 - 1x 3.7V 1800mAh LiPo Battery
-- 1x 470Ω Resistor
-- 1x 1000µF Capacitor
+- 1x 470Ω Resistor *(optional)*
+- 1x 1000µF Capacitor *(optional)*
 
 ## 📋 Pin Configuration (unified)
 
