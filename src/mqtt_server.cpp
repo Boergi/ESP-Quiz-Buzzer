@@ -40,24 +40,77 @@ void handleClientJoin(const String& payload) {
   uint8_t capability = doc[JsonKey::CAPABILITY] | 8;  // default 8 if not provided
   String firmware = doc[JsonKey::FIRMWARE] | "1.0";  // default if not provided
   
-  Serial.printf("Client join request: %s (cap: %d, fw: %s)\n", 
-                clientId.c_str(), capability, firmware.c_str());
+  Serial.printf("Client join request: %s (cap: %d, fw: %s) - Phase: %s\n", 
+                clientId.c_str(), capability, firmware.c_str(), phaseToString(currentPhase));
   
-  // Check if game is locked
-  if (gameLocked) {
-    Serial.printf("Game locked, rejecting client %s\n", clientId.c_str());
-    return;
-  }
-  
-  // Check if already connected
+  // ====== RECONNECT LOGIC - ALWAYS ALLOW KNOWN CLIENTS ======
+  // Check if client already exists (reconnect scenario)
   for (uint8_t i = 0; i < gameClientCount; i++) {
     if (gameClients[i].id == clientId) {
       gameClients[i].connected = true;
       gameClients[i].lastSeen = millis();
-      Serial.printf("Client %s reconnected\n", clientId.c_str());
+      Serial.printf("✓ Client %s RECONNECTED (slot %d)\n", clientId.c_str(), gameClients[i].slot);
+      
+      // Send assignment to restore client state
       sendClientAssignment(clientId, gameClients[i].slot, gameClients[i].color);
-      return;
+      
+      // Restore client state based on current game phase
+      StaticJsonDocument<200> stateDoc;
+      
+      // If client was in buzz queue, restore their state
+      bool wasInQueue = false;
+      for (uint8_t q = 0; q < queueLength; q++) {
+        if (buzzQueue[q] == clientId) {
+          wasInQueue = true;
+          Serial.printf("  → Client was in buzz queue at position %d\n", q);
+          
+          // If client is active, send ANIM_ACTIVE
+          if (activeClientIndex == q) {
+            stateDoc[JsonKey::CMD] = Command::ANIM_ACTIVE;
+            stateDoc[JsonKey::TARGET] = clientId;
+            String message;
+            serializeJson(stateDoc, message);
+            mqttBroker.publish(Topic::CMD, message.c_str());
+            Serial.printf("  → Restored ACTIVE state for %s\n", clientId.c_str());
+          } else {
+            // Client is waiting in queue, show white light
+            stateDoc[JsonKey::CMD] = Command::LIGHT_WHITE;
+            stateDoc[JsonKey::TARGET] = clientId;
+            String message;
+            serializeJson(stateDoc, message);
+            mqttBroker.publish(Topic::CMD, message.c_str());
+            Serial.printf("  → Restored LOCKED state for %s (waiting in queue)\n", clientId.c_str());
+          }
+          break;
+        }
+      }
+      
+      // If not in queue, restore IDLE state (if in READY/OPEN phase)
+      if (!wasInQueue && (currentPhase == Phase::READY || currentPhase == Phase::OPEN)) {
+        stateDoc[JsonKey::CMD] = Command::IDLE_COLOR;
+        stateDoc[JsonKey::TARGET] = clientId;
+        String message;
+        serializeJson(stateDoc, message);
+        mqttBroker.publish(Topic::CMD, message.c_str());
+        Serial.printf("  → Restored IDLE state for %s\n", clientId.c_str());
+      }
+      
+      return; // Reconnect handled, exit function
     }
+  }
+  
+  // ====== NEW CLIENT LOGIC - CHECK PHASE ======
+  // Only allow new clients to join in LOBBY or READY phase
+  if (currentPhase != Phase::LOBBY && currentPhase != Phase::READY) {
+    Serial.printf("✗ New client %s rejected - game in phase %s (only LOBBY/READY allowed)\n", 
+                  clientId.c_str(), phaseToString(currentPhase));
+    return;
+  }
+  
+  // Check if game is locked (for new clients)
+  if (gameLocked && currentPhase == Phase::READY) {
+    Serial.printf("✗ New client %s rejected - game locked in READY phase\n", clientId.c_str());
+    return;
   }
   
   // Add new client
@@ -69,7 +122,7 @@ void handleClientJoin(const String& payload) {
     gameClients[gameClientCount].buzzed = false;
     gameClients[gameClientCount].lastSeen = millis();
     
-    Serial.printf("New client added: %s (slot %d, color R:%d G:%d B:%d)\n",
+    Serial.printf("✓ New client added: %s (slot %d, color R:%d G:%d B:%d)\n",
                   clientId.c_str(), gameClients[gameClientCount].slot,
                   gameClients[gameClientCount].color.r, gameClients[gameClientCount].color.g, gameClients[gameClientCount].color.b);
     
@@ -78,7 +131,7 @@ void handleClientJoin(const String& payload) {
     
     gameManager->publishGameState();
   } else {
-    Serial.printf("Max clients reached, rejecting %s\n", clientId.c_str());
+    Serial.printf("✗ Max clients reached, rejecting %s\n", clientId.c_str());
   }
 }
 
@@ -211,9 +264,13 @@ void publishAnnounce() {
 void checkClientTimeouts() {
   uint32_t now = millis();
   for (uint8_t i = 0; i < gameClientCount; i++) {
-    if (gameClients[i].connected && (now - gameClients[i].lastSeen > 30000)) { // 30 second timeout
+    if (gameClients[i].connected && (now - gameClients[i].lastSeen > CLIENT_TIMEOUT_MS)) {
       gameClients[i].connected = false;
-      Serial.printf("Client %s timed out\n", gameClients[i].id.c_str());
+      Serial.printf("⚠ Client %s timed out (no ping for %d ms)\n", 
+                    gameClients[i].id.c_str(), CLIENT_TIMEOUT_MS);
+      
+      // Note: Client stays in gameClients array and can reconnect at any time
+      // Their slot and color are preserved for seamless reconnection
     }
   }
 }

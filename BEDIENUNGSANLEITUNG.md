@@ -163,6 +163,13 @@ Ein elektronisches Buzzer-System für Hochzeiten - bestimmt die Buffet-Reihenfol
 **🔴 Ein Tisch-Buzzer pulsiert rot**
 - Problem: Nicht verbunden
 - Lösung: Buzzer aus- und einschalten
+- **NEU:** System erkennt automatisch den Wiederanschluss und stellt den Spielzustand wieder her!
+
+**📡 Verbindung unterbrochen während des Spiels**
+- **Kein Problem!** Das System erkennt Reconnects automatisch
+- Buzzer verbindet sich automatisch wieder mit dem gleichen Slot und der gleichen Farbe
+- Wenn der Tisch in der Buzz-Queue war, wird seine Position wiederhergestellt
+- **Du musst nichts tun** - einfach weiterspielen!
 
 **🤔 Buzzer reagiert nicht**
 - Problem: Spiel ist nicht in "Buzzer-Zeit" 
