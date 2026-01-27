@@ -98,7 +98,7 @@ Ein elektronisches Buzzer-System für Hochzeiten - bestimmt die Buffet-Reihenfol
 ## 🎯 So läuft eine Quiz-Runde
 
 ### 1. 🔵 VORBEREITUNG
-- Alle Geräte einschalten
+- Alle Geräte einschalten (der Power-Knopf befindet sich auf der Unterseite der Buzzer)
 - **Buzzer-Meister bestimmen:** Jeder Tisch wählt seinen Buzzer-Meister
 - Warten bis alle Tische ihre Farbe haben
 - **Tisch-Buzzer:** Zeigen konstant ihre Tisch-Farbe (verbunden)

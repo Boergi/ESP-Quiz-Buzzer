@@ -94,16 +94,25 @@ void GameManager::handlePhase() {
   
   switch(currentPhase) {
     case Phase::BOOT:
-      // Boot phase - LEDs off, waiting for manual transition
-      ledController->clearAllLEDs();
-      
-      // Auto-transition to LOBBY after 15 seconds
-      static uint32_t bootStart = millis();
-      if (millis() - bootStart > 15000) {
-        currentPhase = Phase::LOBBY;
-        ledController->clearAllLEDs();
-        Serial.println("=== PHASE: LOBBY ===");
-        publishGameState();
+      // Boot phase - wait for auto-transition (don't touch LEDs during RGB test)
+      {
+        static uint32_t bootStart = millis();
+        static bool bootClearDone = false;
+        
+        // Only clear LEDs once after 3.5 seconds (after RGB test completes)
+        if (!bootClearDone && millis() - bootStart > 3500) {
+          ledController->clearAllLEDs();
+          bootClearDone = true;
+        }
+        
+        // Auto-transition to LOBBY after 15 seconds
+        if (millis() - bootStart > 15000) {
+          currentPhase = Phase::LOBBY;
+          ledController->clearAllLEDs();
+          Serial.println("=== PHASE: LOBBY ===");
+          publishGameState();
+          bootClearDone = false; // Reset for next boot cycle
+        }
       }
       break;
       
@@ -195,8 +204,18 @@ void GameManager::resetGame() {
 }
 
 void GameManager::startQuestion() {
+  // Clear buzz queue before starting new question
+  memset(buzzQueue, 0, sizeof(buzzQueue));
+  queueLength = 0;
+  activeClientIndex = -1;
+  
+  // Reset all client buzz states
+  for (uint8_t i = 0; i < gameClientCount; i++) {
+    gameClients[i].buzzed = false;
+  }
+  
   currentPhase = Phase::OPEN;
-  Serial.println("=== PHASE: OPEN ===");
+  Serial.println("=== PHASE: OPEN (Queue cleared) ===");
   publishGameState();
 }
 

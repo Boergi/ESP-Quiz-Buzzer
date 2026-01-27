@@ -205,7 +205,10 @@ void handleClientBuzz(const String& payload) {
     Serial.println();
     
     gameManager->publishBuzzQueue();
-    if (ledController) {
+    
+    // Only update server LEDs if we're in ANSWER phase
+    // In OPEN phase, animateOpen() handles the LEDs
+    if (ledController && currentPhase == Phase::ANSWER) {
       ledController->updateServerLEDs();
     }
   }

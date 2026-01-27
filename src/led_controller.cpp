@@ -21,21 +21,34 @@ void LEDController::clearAllLEDs() {
 
 void LEDController::showRGBTest() {
   // Test all 3 basic colors on ALL 18 LEDs to verify RGB functionality
+  
+  // RED TEST
   Serial.println("Testing RED on all 18 LEDs...");
+  strip.clear();
+  strip.show();
+  delay(50); // Small delay for LEDs to reset
   for (uint16_t i = 0; i < LED_COUNT; i++) {
     setPixelColor(i, Rgb(255, 0, 0)); // RED
   }
   strip.show();
   delay(1000);
   
+  // GREEN TEST
   Serial.println("Testing GREEN on all 18 LEDs...");
+  strip.clear();
+  strip.show();
+  delay(50); // Small delay for LEDs to reset
   for (uint16_t i = 0; i < LED_COUNT; i++) {
     setPixelColor(i, Rgb(0, 255, 0)); // GREEN
   }
   strip.show();
   delay(1000);
   
+  // BLUE TEST
   Serial.println("Testing BLUE on all 18 LEDs...");
+  strip.clear();
+  strip.show();
+  delay(50); // Small delay for LEDs to reset
   for (uint16_t i = 0; i < LED_COUNT; i++) {
     setPixelColor(i, Rgb(0, 0, 255)); // BLUE
   }
@@ -43,7 +56,8 @@ void LEDController::showRGBTest() {
   delay(1000);
   
   Serial.println("RGB test complete on all 18 LEDs!");
-  clearAllLEDs();
+  strip.clear();
+  strip.show();
 }
 
 void LEDController::showLEDs() {

@@ -22,6 +22,9 @@ A quiz buzzer system with one ESP32 server and multiple ESP32 clients, connected
 | **Button** | 12x12x7mm Tactile Push Button Switch, 4-Pin | [Amazon DE](https://www.amazon.de/dp/B0CP2DMNMQ) |
 | **Button Spring** | Spring for button mechanism | [Amazon DE](https://www.amazon.de/dp/B0DHCPVJNS) |
 | **Charging Module** | Lithium Battery Charging Module (TP4056 or similar) | [Amazon DE](https://www.amazon.de/dp/B0DBHMR5KJ) |
+| **Power Switch** | Mini Toggle Switch / Push Button for power | [Amazon DE](https://www.amazon.de/dp/B0CZNH2K4S) |
+| **Heat Inserts** | M3 Threaded Inserts (short version) | [Amazon DE](https://www.amazon.de/dp/B0D17FGQWW) |
+| **Screws** | M3 x 8 mm (Counter-sunk or button head) | - |
 
 #### Server-Specific Components
 
@@ -38,12 +41,12 @@ A quiz buzzer system with one ESP32 server and multiple ESP32 clients, connected
 
 #### Additional Components (both Server & Clients)
 
-- **Series Resistor:** 330-470Ω for LED data line protection *(optional - works fine without it)*
-- **Capacitor:** 1000µF electrolytic capacitor (5V ↔ GND) for power stabilization *(optional - works fine without it)*
+- **Series Resistor:** 330-470Ω for LED data line protection (Strongly recommended to prevent LED flickering/damage)
+- **Capacitor:** 1000µF electrolytic capacitor (5V ↔ GND) for power stabilization (Strongly recommended for stable LED operation)
 - **Wiring:** Suitable gauge wire for connections
-- **Case/Housing:** Custom 3D-printed or purchased enclosure (optional)
+- **Case/Housing:** Custom 3D-printed enclosure. The hole in the bottom is designed for the Power Switch (secured with a zip tie).
 
-> **Note:** The series resistor and capacitor are traditionally recommended for WS2812B LED projects, but the system has been tested and works reliably without them. Feel free to omit them for a simpler build!
+> **Note:** While the system might work without the series resistor and capacitor in some setups, it is highly recommended to include them to avoid flickering and ensure long-term reliability of the WS2812B LEDs.
 
 ### Build Specifications
 
@@ -54,6 +57,7 @@ A quiz buzzer system with one ESP32 server and multiple ESP32 clients, connected
 - 1x Tactile Button (main control)
 - 1x Button Spring
 - 1x Lithium Battery Charging Module
+- 1x Power Switch
 - 1x 3.7V 8000mAh LiPo Battery
 - 1x 470Ω Resistor *(optional)*
 - 1x 1000µF Capacitor *(optional)*
@@ -65,6 +69,7 @@ A quiz buzzer system with one ESP32 server and multiple ESP32 clients, connected
 - 1x Button Spring
 - 1x Lithium Battery Charging Module
 - 1x 3.7V 1800mAh LiPo Battery
+- 1x Power Switch
 - 1x 470Ω Resistor *(optional)*
 - 1x 1000µF Capacitor *(optional)*
 
@@ -182,11 +187,6 @@ pio device monitor --environment client
 - ✅ Client basic functions (LED animations, button tests)
 - ✅ Compilation for both environments
 
-**Next Steps (Phase 2):**
-- Integrate MQTT broker on server
-- Client WiFi connection to server
-- Basic MQTT communication
-
 ---
 
 ## 🔧 Technical Specifications
@@ -248,9 +248,22 @@ pio device monitor --environment client
 
 ---
 
-## 📚 Additional Documentation
+## 📚 Documentation
 
-- **User Manual:** `USER_MANUAL.md` - For Quiz Masters
-- **Operating Instructions (German):** `BEDIENUNGSANLEITUNG.md` - Für Quiz-Master
-- **Complete Specification:** `esp_32_quiz_buzzer_server_clients_umsetzungsleitfaden_fur_platform_io.md`
+### 📖 Overview
+For complete documentation, see **[Documentation Overview](docs/OVERVIEW.md)**
+
+### 🎯 Quick Links
+
+**For Users & Operators:**
+- **[User Manual (English)](docs/USER_MANUAL.md)** - Complete guide for Quiz Masters and DJs
+- **[Bedienungsanleitung (Deutsch)](docs/BEDIENUNGSANLEITUNG.md)** - Deutsche Anleitung für Quiz-Master
+
+**For Builders & Developers:**
+- **[Wiring Guide](docs/WIRING_GUIDE.md)** - Complete assembly instructions with diagrams
+- **[Technical Specification](docs/TECHNICAL_SPECIFICATION.md)** - System architecture, MQTT protocol, state machine, and implementation details
+
+**Hardware Reference:**
+- [Server Wiring Diagram](docs/images/server-sheet.png)
+- [Client Wiring Diagram](docs/images/client-sheet.png)
 

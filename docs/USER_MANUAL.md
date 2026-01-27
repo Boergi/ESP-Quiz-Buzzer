@@ -98,7 +98,7 @@ An electronic buzzer system for weddings - determines the buffet order in a fun 
 ## 🎯 How a Quiz Round Works
 
 ### 1. 🔵 PREPARATION
-- Turn on all devices
+- Turn on all devices (the power button is located on the bottom of the buzzers)
 - **Appoint Buzzer Masters:** Each table chooses their Buzzer Master
 - Wait until all tables have their color
 - **Table buzzers:** Show their table color constantly (connected)
