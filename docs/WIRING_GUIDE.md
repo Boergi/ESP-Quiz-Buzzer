@@ -21,6 +21,21 @@ Complete step-by-step wiring instructions for building the Server (Quiz Master) 
 - **Solder**
 - **Electrical tape** or **Kapton tape**
 
+### Optional Components
+
+#### DC-DC Step-Up Converter (Server Only)
+- **Purpose:** Boosts 3.7V battery voltage to stable 5V for LEDs and ESP32
+- **Type:** Step-up (boost) converter, adjustable output
+- **Recommended specs:** 
+  - Input: 3.0-4.2V (LiPo range)
+  - Output: 5V, min. 3A capacity
+  - Efficiency: >85%
+- **Advantages:**
+  - More stable voltage for LEDs (less flickering)
+  - Better performance at low battery levels
+  - Can extend usable battery capacity
+- **Note:** Not required if using ESP32's onboard regulator, but recommended for server with 18 LEDs
+
 ---
 
 ## 🔌 Pin Configuration (Unified for Server & Client!)
@@ -54,6 +69,7 @@ Both Server and Client use **identical pin assignments** - this simplifies assem
 - LiPo Battery (3.7V 8000mAh)
 - 1000µF Capacitor (power stabilization)
 - 470Ω Resistor (R1, LED data line protection)
+- DC-DC Step Up Converter (Optional)
 - Button (with internal pull-up)
 - Power Switch
 
@@ -88,26 +104,37 @@ Both Server and Client use **identical pin assignments** - this simplifies assem
 
 **IMPORTANT:** Build power system first and test before connecting other components!
 
-#### Battery → Charging Module → ESP32
+#### Battery → Charging Module → (Optional DC-DC Converter) → ESP32
 
 1. **Solder battery to TP4056 charging module:**
    - Red wire → B+ pad
    - Black wire → B- pad
    - **Add strain relief** with hot glue or zip tie
 
-2. **Add the power switch:**
-   - Cut the positive (+) wire between OUT+ and the ESP32
-   - Solder switch in line with this wire
-   - The switch goes in the hole on the bottom of the enclosure (secure with zip tie)
+2. **Optional: Add DC-DC Step-Up Converter (Server recommended):**
+   
+   **If using DC-DC converter (recommended for Server):**
+   - Connect TP4056 OUT+ → DC-DC Vin+
+   - Connect TP4056 OUT- → DC-DC Vin-
+   - **Adjust output voltage:** Turn trimmer potentiometer until Vout = 5.0V (measure with multimeter!)
+   - Connect DC-DC Vout+ → Power switch → ESP32 VIN & LED 5V
+   - Connect DC-DC Vout- → ESP32 GND & LED GND
+   
+   **If NOT using DC-DC converter (simpler, but less stable):**
+   - Connect TP4056 OUT+ → Power switch → ESP32 VIN
+   - Connect TP4056 OUT- → ESP32 GND
+   - Note: Voltage will vary 3.0-4.2V depending on battery charge
 
-3. **Connect TP4056 output to ESP32:**
-   - OUT+ → ESP32 VIN (or 5V pin)
-   - OUT- → ESP32 GND
+3. **Add the power switch:**
+   - Install in the positive (+) line (between power source and ESP32)
+   - The switch goes in the hole on the bottom of the enclosure (secure with zip tie)
 
 4. **Test the power system:**
    - Plug USB-C into TP4056 (charging LED should light up)
+   - If using DC-DC converter: Verify output is 5.0V ±0.1V
    - Turn on power switch
    - ESP32 should power up (onboard LED may blink)
+   - Measure voltage at ESP32 VIN: Should be 4.2V (no converter) or 5.0V (with converter)
 
 ### Step 3: LED Wiring
 
@@ -200,10 +227,12 @@ Use this checklist for each device you build:
 
 ### Power System
 - [ ] Battery soldered to TP4056 B+/B-
+- [ ] (Optional) DC-DC converter connected and adjusted to 5.0V
 - [ ] Power switch in positive line
-- [ ] TP4056 OUT+/OUT- to ESP32 VIN/GND
+- [ ] Power output to ESP32 VIN/GND
 - [ ] USB charging tested (charging LED on TP4056)
 - [ ] Power switch tested (ESP32 turns on/off)
+- [ ] Voltage at ESP32 VIN measured: ~4.2V (no converter) or 5.0V (with converter)
 
 ### LED System
 - [ ] 1000µF capacitor installed (5V to GND, correct polarity!)
@@ -364,6 +393,42 @@ Using consistent colors makes troubleshooting much easier:
 ---
 
 ## 🛠️ Advanced: Modifications
+
+### DC-DC Step-Up Converter (Recommended for Server)
+
+**Why add a DC-DC converter?**
+
+The 3.7V LiPo battery voltage drops as it discharges (4.2V full → 3.0V empty). This can cause:
+- LED color shifting and flickering at low battery
+- ESP32 brownouts (especially with 18 LEDs on server)
+- Reduced usable battery capacity
+
+A step-up converter maintains stable 5V regardless of battery level.
+
+**Installation (Server):**
+
+1. **Position:** Between TP4056 OUT and ESP32/LED power
+2. **Wiring:**
+   ```
+   Battery → TP4056 → DC-DC Converter → Switch → ESP32 & LEDs
+              (3.7V)      (5.0V output)
+   ```
+3. **Initial Setup:**
+   - Connect multimeter to DC-DC output
+   - Adjust trimmer potentiometer until exactly 5.0V
+   - Mark potentiometer position with marker (prevents accidental adjustment)
+   - Double-check voltage before connecting to ESP32!
+
+4. **Benefits:**
+   - Stable LED colors throughout battery life
+   - No brownouts
+   - Can use battery down to 3.0V (vs 3.3V minimum for ESP32)
+   - Better performance overall
+
+**Do clients need it?**
+- Not essential for clients (only 8 LEDs)
+- Server benefits more (18 LEDs = more power draw)
+- If building 10 clients, may skip converter to reduce cost/complexity
 
 ### Adding Additional Buttons (Server)
 

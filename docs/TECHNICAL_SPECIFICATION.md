@@ -115,6 +115,7 @@ constexpr uint8_t BUTTON_PIN = 18;   // Main button (INPUT_PULLUP)
 - **WS2812B LEDs:** 18 total (8-LED ring + 10 from strip)
 - **Battery:** 3.7V 8000mAh LiPo
 - **Charging:** TP4056 USB-C module
+- **DC-DC Step-Up Converter:** Optional but recommended (boosts 3.7V battery to stable 5V)
 - **Power switch:** In positive line (bottom hole mount)
 - **Protection:** 470Ω resistor (data line), 1000µF capacitor (power)
 

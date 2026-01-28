@@ -21,7 +21,7 @@ A quiz buzzer system with one ESP32 server and multiple ESP32 clients, connected
 | **LED Ring (8 LEDs)** | WS2812 5050 RGB LED Ring, 8 Bit, 32mm outer diameter | [AZ-Delivery](https://www.az-delivery.de/products/led-ring-ws2812-5050-rgb) |
 | **Button** | 12x12x7mm Tactile Push Button Switch, 4-Pin | [Amazon DE](https://www.amazon.de/dp/B0CP2DMNMQ) |
 | **Button Spring** | Spring for button mechanism | [Amazon DE](https://www.amazon.de/dp/B0DHCPVJNS) |
-| **Charging Module** | Lithium Battery Charging Module (TP4056 or similar) | [Amazon DE](https://www.amazon.de/dp/B0DBHMR5KJ) |
+| **Charging Module** | Lithium Battery Charging Module (TP4056) | [Amazon DE](https://www.amazon.de/dp/B0DBHMR5KJ) |
 | **Power Switch** | Mini Toggle Switch / Push Button for power | [Amazon DE](https://www.amazon.de/dp/B0CZNH2K4S) |
 | **Heat Inserts** | M3 Threaded Inserts (short version) | [Amazon DE](https://www.amazon.de/dp/B0D17FGQWW) |
 | **Screws** | M3 x 8 mm (Counter-sunk) | - |
@@ -32,6 +32,7 @@ A quiz buzzer system with one ESP32 server and multiple ESP32 clients, connected
 |-----------|---------------|------|
 | **LED Strip** | WS2812B LED Strip, 60 LEDs/m (for additional 10 status LEDs) | [Amazon DE](https://www.amazon.de/SEZO-Individuell-Adressierbar-Nicht-Wasserdicht-Inneneinrichtung/dp/B09N99DJRG) |
 | **Battery** | Lithium Polymer Battery 3.7V 8000mAh (high capacity for server) | [Amazon DE](https://www.amazon.de/dp/B0F4WW11PX) |
+| **DC-DC Step Up Converter (Optional)** | ARCELI DC-DC Step Up Boost Power Converter, 2V-24V to DC 5V-28V Step-Up | [Amazon DE](https://www.amazon.de/dp/B0CR5PH1MW) |
 
 #### Client-Specific Components
 
@@ -57,10 +58,11 @@ A quiz buzzer system with one ESP32 server and multiple ESP32 clients, connected
 - 1x Tactile Button (main control)
 - 1x Button Spring
 - 1x Lithium Battery Charging Module
+- 1x DC-DC Step-Up Converter (3.7V→5V) *(optional but recommended)*
 - 1x Power Switch
 - 1x 3.7V 8000mAh LiPo Battery
-- 1x 470Ω Resistor *(optional)*
-- 1x 1000µF Capacitor *(optional)*
+- 1x 470Ω Resistor *(strongly recommended)*
+- 1x 1000µF Capacitor *(strongly recommended)*
 
 #### Client (Player Buzzer) - Build 10x
 - 1x ESP32-CH340C-TYPEC Board
@@ -70,8 +72,8 @@ A quiz buzzer system with one ESP32 server and multiple ESP32 clients, connected
 - 1x Lithium Battery Charging Module
 - 1x 3.7V 1800mAh LiPo Battery
 - 1x Power Switch
-- 1x 470Ω Resistor *(optional)*
-- 1x 1000µF Capacitor *(optional)*
+- 1x 470Ω Resistor *(strongly recommended)*
+- 1x 1000µF Capacitor *(strongly recommended)*
 
 ## 📋 Pin Configuration (unified)
 
