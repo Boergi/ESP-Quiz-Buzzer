@@ -24,7 +24,7 @@ A quiz buzzer system with one ESP32 server and multiple ESP32 clients, connected
 | **Charging Module** | Lithium Battery Charging Module (TP4056 or similar) | [Amazon DE](https://www.amazon.de/dp/B0DBHMR5KJ) |
 | **Power Switch** | Mini Toggle Switch / Push Button for power | [Amazon DE](https://www.amazon.de/dp/B0CZNH2K4S) |
 | **Heat Inserts** | M3 Threaded Inserts (short version) | [Amazon DE](https://www.amazon.de/dp/B0D17FGQWW) |
-| **Screws** | M3 x 8 mm (Counter-sunk or button head) | - |
+| **Screws** | M3 x 8 mm (Counter-sunk) | - |
 
 #### Server-Specific Components
 
