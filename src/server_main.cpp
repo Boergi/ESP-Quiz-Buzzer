@@ -47,7 +47,7 @@ float readBatteryVoltage() {
 
 uint8_t batteryPercentFromVoltage(float vbat) {
   if (vbat >= BATTERY_TABLE[0].voltage) return 100;
-  if (vbat <= BATTERY_TABLE[10].voltage) return 0;
+  if (vbat <= BATTERY_TABLE[10].voltage) return 1;
 
   for (uint8_t i = 0; i < 10; i++) {
     const BatteryPoint high = BATTERY_TABLE[i];
@@ -57,7 +57,7 @@ uint8_t batteryPercentFromVoltage(float vbat) {
       return static_cast<uint8_t>(low.percent + t * (high.percent - low.percent));
     }
   }
-  return 0;
+  return 1;
 }
 
 Rgb batteryColor(uint8_t percent) {

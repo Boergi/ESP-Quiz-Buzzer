@@ -46,7 +46,7 @@ float readBatteryVoltage() {
 
 uint8_t batteryPercentFromVoltage(float vbat) {
   if (vbat >= BATTERY_TABLE[0].voltage) return 100;
-  if (vbat <= BATTERY_TABLE[10].voltage) return 0;
+  if (vbat <= BATTERY_TABLE[10].voltage) return 1;
 
   for (uint8_t i = 0; i < 10; i++) {
     const BatteryPoint high = BATTERY_TABLE[i];
@@ -56,7 +56,7 @@ uint8_t batteryPercentFromVoltage(float vbat) {
       return static_cast<uint8_t>(low.percent + t * (high.percent - low.percent));
     }
   }
-  return 0;
+  return 1;
 }
 
 Rgb batteryColor(uint8_t percent) {
@@ -128,7 +128,7 @@ void setup() {
   Serial.println("Client ready!");
   Serial.println("Button Controls:");
   Serial.println("- SHORT press: Buzz (when connected and game is open)");
-  Serial.println("- VERY LONG press: Battery check (when not connected or in LOBBY)");
+  Serial.println("- VERY LONG press: Battery check (when disconnected)");
   Serial.println("- System automatically handles connection and state changes");
 }
 
@@ -177,8 +177,7 @@ void loop() {
         }
       } else if (press == ButtonPress::VERY_LONG) {
         const bool notConnected = !(clientMqtt && clientMqtt->isConnected());
-        const bool inLobby = (currentGamePhase == Phase::LOBBY);
-        const bool batteryCheckAllowed = notConnected || inLobby;
+        const bool batteryCheckAllowed = notConnected;
 
         if (batteryCheckAllowed) {
           const float vbat = readBatteryVoltage();
@@ -189,7 +188,7 @@ void loop() {
           batteryDisplayActive = true;
           batteryDisplayUntil = millis() + BATTERY_DISPLAY_MS;
         } else {
-          Serial.println("Battery check ignored (only allowed when disconnected or LOBBY)");
+          Serial.println("Battery check ignored (only allowed when disconnected)");
         }
       }
     }
