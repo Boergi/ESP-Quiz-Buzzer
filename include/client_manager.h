@@ -18,6 +18,7 @@ public:
   
 private:
   ClientData data;
+  uint32_t celebrateUntilMs;
   
 public:
   ClientManager();
@@ -25,6 +26,7 @@ public:
   // State management
   void setState(ClientState newState);
   ClientState getState() const;
+  bool isCelebrateLocked() const;
   void handleStateAnimations();
   
   // Assignment handling

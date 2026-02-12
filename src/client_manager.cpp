@@ -14,6 +14,7 @@ ClientManager::ClientManager() {
   data.assignedColor = Rgb(255, 0, 0); // Default red
   data.hasBuzzed = false;
   data.isActive = false;
+  celebrateUntilMs = 0;
   
   if (clientMqtt) {
     data.id = clientMqtt->getClientId();
@@ -21,6 +22,15 @@ ClientManager::ClientManager() {
 }
 
 void ClientManager::setState(ClientState newState) {
+  // Keep CELEBRATE stable for its full duration.
+  if (isCelebrateLocked() && newState != ClientState::CELEBRATE) {
+    return;
+  }
+
+  if (newState == ClientState::CELEBRATE) {
+    celebrateUntilMs = millis() + CELEBRATION_DURATION_MS;
+  }
+
   if (data.currentState != newState) {
     Serial.printf("State change: %d -> %d\n", (int)data.currentState, (int)newState);
     data.currentState = newState;
@@ -30,6 +40,11 @@ void ClientManager::setState(ClientState newState) {
 ClientState ClientManager::getState() const {
   return data.currentState;
 }
+
+bool ClientManager::isCelebrateLocked() const {
+  return data.currentState == ClientState::CELEBRATE && millis() < celebrateUntilMs;
+}
+
 
 void ClientManager::handleStateAnimations() {
   if (!clientLedController) return;
@@ -82,14 +97,9 @@ void ClientManager::handleStateAnimations() {
       
     case ClientState::CELEBRATE:
       clientLedController->animateCelebration();
-      // Auto-return to idle after celebration
-      static uint32_t celebrationStart = 0;
-      if (celebrationStart == 0) {
-        celebrationStart = millis();
-      }
-      if (millis() - celebrationStart > CELEBRATION_DURATION_MS) {
+      // Auto-return to idle after fixed celebration window
+      if (!isCelebrateLocked()) {
         setState(ClientState::IDLE);
-        celebrationStart = 0; // Reset for next time
       }
       break;
       

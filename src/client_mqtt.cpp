@@ -230,7 +230,9 @@ void handleGameState(const String& payload) {
     // New question, reset buzz state
     if (clientManager) {
       clientManager->resetBuzzState();
-      clientManager->setState(ClientState::IDLE);
+      if (!clientManager->isCelebrateLocked()) {
+        clientManager->setState(ClientState::IDLE);
+      }
     }
   }
 }
