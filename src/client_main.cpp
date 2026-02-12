@@ -128,7 +128,7 @@ void setup() {
   Serial.println("Client ready!");
   Serial.println("Button Controls:");
   Serial.println("- SHORT press: Buzz (when connected and game is open)");
-  Serial.println("- VERY LONG press: Battery check (when disconnected)");
+  Serial.println("- VERY LONG press: Battery check (when not connected or in LOBBY)");
   Serial.println("- System automatically handles connection and state changes");
 }
 
@@ -177,7 +177,8 @@ void loop() {
         }
       } else if (press == ButtonPress::VERY_LONG) {
         const bool notConnected = !(clientMqtt && clientMqtt->isConnected());
-        const bool batteryCheckAllowed = notConnected;
+        const bool inLobby = (currentGamePhase == Phase::LOBBY);
+        const bool batteryCheckAllowed = notConnected || inLobby;
 
         if (batteryCheckAllowed) {
           const float vbat = readBatteryVoltage();
@@ -188,7 +189,7 @@ void loop() {
           batteryDisplayActive = true;
           batteryDisplayUntil = millis() + BATTERY_DISPLAY_MS;
         } else {
-          Serial.println("Battery check ignored (only allowed when disconnected)");
+          Serial.println("Battery check ignored (only allowed when disconnected or LOBBY)");
         }
       }
     }
