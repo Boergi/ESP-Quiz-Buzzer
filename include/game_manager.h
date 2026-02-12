@@ -10,6 +10,7 @@ private:
   Bounce& button;
   uint32_t lastButtonPress;
   bool buttonHeld;
+  bool longTriggered;
   
 public:
   ButtonHandler(Bounce& btn);

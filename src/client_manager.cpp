@@ -168,22 +168,44 @@ const Rgb& ClientManager::getAssignedColor() const {
 }
 
 // ClientButtonHandler Implementation
-ClientButtonHandler::ClientButtonHandler(Bounce& btn) : button(btn), lastButtonPress(0), buttonPressed(false) {
+ClientButtonHandler::ClientButtonHandler(Bounce& btn)
+  : button(btn), lastButtonPress(0), buttonHeld(false), veryLongTriggered(false) {
 }
 
 void ClientButtonHandler::update() {
   button.update();
-  
-  if (button.fell() && !buttonPressed) {
-    buttonPressed = true;
+
+  if (button.fell()) {
     lastButtonPress = millis();
+    buttonHeld = false;
+    veryLongTriggered = false;
   }
 }
 
-bool ClientButtonHandler::wasPressed() {
-  if (buttonPressed) {
-    buttonPressed = false; // Reset flag
-    return true;
+ButtonPress ClientButtonHandler::getButtonPress() {
+  if (button.read() == LOW && lastButtonPress && !veryLongTriggered) {
+    uint32_t holdTime = millis() - lastButtonPress;
+    if (holdTime >= VERY_LONG_PRESS_MS) {
+      veryLongTriggered = true;
+      buttonHeld = true;
+      return ButtonPress::VERY_LONG;
+    }
   }
-  return false;
+
+  if (button.rose()) {
+    if (!buttonHeld && lastButtonPress) {
+      uint32_t pressTime = millis() - lastButtonPress;
+      if (pressTime < SHORT_PRESS_MAX_MS) {
+        lastButtonPress = 0;
+        buttonHeld = false;
+        veryLongTriggered = false;
+        return ButtonPress::SHORT;
+      }
+    }
+    lastButtonPress = 0;
+    buttonHeld = false;
+    veryLongTriggered = false;
+  }
+
+  return ButtonPress::NONE;
 }

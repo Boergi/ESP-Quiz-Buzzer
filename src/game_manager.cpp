@@ -8,7 +8,7 @@ ButtonHandler* buttonHandler = nullptr;
 GameManager* gameManager = nullptr;
 
 // ButtonHandler Implementation
-ButtonHandler::ButtonHandler(Bounce& btn) : button(btn), lastButtonPress(0), buttonHeld(false) {
+ButtonHandler::ButtonHandler(Bounce& btn) : button(btn), lastButtonPress(0), buttonHeld(false), longTriggered(false) {
 }
 
 ButtonPress ButtonHandler::checkButtonPress() {
@@ -18,28 +18,30 @@ ButtonPress ButtonHandler::checkButtonPress() {
   if (button.fell()) {
     lastButtonPress = millis();
     buttonHeld = false;
+    longTriggered = false;
     return ButtonPress::NONE;
   }
   
   // Button held - check for long press
-  if (button.read() == LOW && lastButtonPress && !buttonHeld) {
+  if (button.read() == LOW && lastButtonPress) {
     uint32_t holdTime = millis() - lastButtonPress;
     
-    if (holdTime >= VERY_LONG_PRESS_MS) {
+    if (holdTime >= VERY_LONG_PRESS_MS && !buttonHeld) {
       buttonHeld = true;
       return ButtonPress::VERY_LONG;
-    } else if (holdTime >= LONG_PRESS_MS) {
-      buttonHeld = true;
+    } else if (holdTime >= LONG_PRESS_MS && !longTriggered) {
+      longTriggered = true;
       return ButtonPress::LONG;
     }
   }
-  
+
   // Button released
   if (button.rose()) {
     if (!buttonHeld && lastButtonPress) {
       uint32_t pressTime = millis() - lastButtonPress;
       lastButtonPress = 0;
       buttonHeld = false;
+      longTriggered = false;
       
       if (pressTime < SHORT_PRESS_MAX_MS) {
         return ButtonPress::SHORT;
@@ -47,6 +49,7 @@ ButtonPress ButtonHandler::checkButtonPress() {
     }
     lastButtonPress = 0;
     buttonHeld = false;
+    longTriggered = false;
   }
   
   return ButtonPress::NONE;
@@ -73,8 +76,10 @@ void GameManager::handleButtonPress(ButtonPress press) {
       Serial.println("LONG press detected");
       if (currentPhase == Phase::ANSWER) {
         correctAnswer();
-      } else {
+      } else if (currentPhase != Phase::LOBBY) {
         resetGame();
+      } else {
+        Serial.println("LONG press ignored in LOBBY (hold for VERY LONG)");
       }
       break;
       

@@ -4,6 +4,7 @@
 
 // Global instance
 ClientMQTT* clientMqtt = nullptr;
+Phase currentGamePhase = Phase::BOOT;
 bool gameIsOpen = false; // Track if game is in OPEN state
 
 ClientMQTT::ClientMQTT() : mqttClient(wifiClient), connected(false), lastConnectionAttempt(0), lastPing(0) {
@@ -23,6 +24,7 @@ void ClientMQTT::begin() {
   
   // Try initial connection
   connectWiFi();
+  lastConnectionAttempt = millis();
 }
 
 void ClientMQTT::loop() {
@@ -57,25 +59,16 @@ bool ClientMQTT::isConnected() {
 }
 
 bool ClientMQTT::connectWiFi() {
+  if (WiFi.status() == WL_CONNECTED) {
+    Serial.printf("WiFi connected! IP: %s\n", WiFi.localIP().toString().c_str());
+    return true;
+  }
+
   Serial.printf("Connecting to WiFi: %s\n", WIFI_SSID);
   
   WiFi.mode(WIFI_STA);
   WiFi.begin(WIFI_SSID, WIFI_PSK);
-  
-  // Wait up to 10 seconds for connection
-  uint32_t startTime = millis();
-  while (WiFi.status() != WL_CONNECTED && millis() - startTime < 10000) {
-    delay(100);
-    Serial.print(".");
-  }
-  
-  if (WiFi.status() == WL_CONNECTED) {
-    Serial.printf("\nWiFi connected! IP: %s\n", WiFi.localIP().toString().c_str());
-    return true;
-  } else {
-    Serial.println("\nWiFi connection failed!");
-    return false;
-  }
+  return false;
 }
 
 void ClientMQTT::disconnectWiFi() {
@@ -217,6 +210,7 @@ void handleGameState(const String& payload) {
   
   // Handle phase changes
   Phase phase = stringToPhase(phaseStr.c_str());
+  currentGamePhase = phase;
   
   // Update global gameIsOpen state
   gameIsOpen = (phase == Phase::OPEN || phase == Phase::ANSWER);
