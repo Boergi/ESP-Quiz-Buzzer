@@ -4,6 +4,7 @@
 
 // Global instance
 ClientMQTT* clientMqtt = nullptr;
+Phase currentGamePhase = Phase::BOOT;
 bool gameIsOpen = false; // Track if game is in OPEN state
 
 ClientMQTT::ClientMQTT() : mqttClient(wifiClient), connected(false), lastConnectionAttempt(0), lastPing(0) {
@@ -217,6 +218,7 @@ void handleGameState(const String& payload) {
   
   // Handle phase changes
   Phase phase = stringToPhase(phaseStr.c_str());
+  currentGamePhase = phase;
   
   // Update global gameIsOpen state
   gameIsOpen = (phase == Phase::OPEN || phase == Phase::ANSWER);

@@ -50,3 +50,4 @@ void handleCommand(const String& payload);
 
 // Global MQTT client instance
 extern ClientMQTT* clientMqtt;
+extern Phase currentGamePhase;

@@ -47,12 +47,13 @@ class ClientButtonHandler {
 private:
   Bounce& button;
   uint32_t lastButtonPress;
-  bool buttonPressed;
+  bool buttonHeld;
+  bool veryLongTriggered;
   
 public:
   ClientButtonHandler(Bounce& btn);
   void update();
-  bool wasPressed();
+  ButtonPress getButtonPress();
 };
 
 // Global instances
