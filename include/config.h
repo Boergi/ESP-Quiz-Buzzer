@@ -64,9 +64,9 @@ constexpr Rgb PLAYER_COLORS[MAX_CLIENTS] = {
   Rgb(255, 0, 255),   // 5. Reines Magenta
   Rgb(0, 255, 255),   // 6. Reines Cyan
   Rgb(255, 128, 0),   // 7. Orange
-  Rgb(128, 0, 255),   // 8. Violett
-  Rgb(255, 192, 203), // 9. Rosa/Pink
-  Rgb(255, 255, 255)  // 10. Weiß
+  Rgb(88, 32, 132),   // 8. Dunkellila
+  Rgb(18, 90, 30),    // 9. Dunkelgruen
+  Rgb(255, 180, 120)  // 10. Warmweiss
 };
 
 // Special Colors
